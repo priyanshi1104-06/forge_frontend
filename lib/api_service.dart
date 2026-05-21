@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -213,22 +212,37 @@ static Future<Map<String, dynamic>> getAIRecommendation({
   required bool includeWorkout,
 }) async {
   final token = await getToken();
-  final response = await http.post(
-    Uri.parse('$baseUrl/ai/recommend'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
-    body: jsonEncode({
-      'goal': goal,
-      'include_diet': includeDiet,
-      'include_workout': includeWorkout,
-    }),
-  );
-  if (response.statusCode == 200) {
-    return {'success': true, 'data': jsonDecode(response.body)};
-  } else {
-    return {'success': false, 'message': 'AI request failed'};
+  if (token == null) {
+    return {
+      'success': false,
+      'message': 'Not logged in. Please sign in and try again.',
+    };
+  }
+
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/ai/recommend'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'goal': goal,
+        'include_diet': includeDiet,
+        'include_workout': includeWorkout,
+      }),
+    );
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return {'success': true, 'data': data};
+    }
+    return {
+      'success': false,
+      'message': data['detail'] ?? data['message'] ?? 'AI request failed',
+      'status': response.statusCode,
+    };
+  } catch (e) {
+    return {'success': false, 'message': 'Network error: $e'};
   }
 }
 static Future<Map<String, dynamic>> getProgressSummary() async {

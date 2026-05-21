@@ -56,7 +56,7 @@ class _AiScreenState extends State<AiScreen> {
       if (result['success']) {
         _result = result['data']['content'];
       } else {
-        _result = 'Failed to get recommendation. Try again.';
+        _result = result['message'] ?? 'Failed to get recommendation. Try again.';
       }
     });
   }
