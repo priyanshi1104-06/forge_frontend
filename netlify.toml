@@ -1,5 +1,5 @@
 [build]
-  command = "flutter build web --release"
+  command = "./netlify-build.sh"
   publish = "build/web"
 
 [[redirects]]
