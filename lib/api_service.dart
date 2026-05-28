@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class ApiService {
   static String get baseUrl {
@@ -22,11 +23,11 @@ class ApiService {
         Uri.parse('$baseUrl/auth/signup'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'name': name,
-          'email': email,
-          'password': password,
-        }),
-      );
+        'name': name,
+        'email': email,
+        'password': password,
+      }),
+    ).timeout(const Duration(seconds: 30));
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return {'success': true, 'data': data};
@@ -48,10 +49,10 @@ class ApiService {
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
+        'email': email,
+        'password': password,
+      }),
+    ).timeout(const Duration(seconds: 30));
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
@@ -110,7 +111,7 @@ class ApiService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(const Duration(seconds: 30));
     if (response.statusCode == 200) {
       return {'success': true, 'data': jsonDecode(response.body)};
     } else {
@@ -127,7 +128,7 @@ class ApiService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(const Duration(seconds: 30));
     if (response.statusCode == 200) {
       return {'success': true, 'data': jsonDecode(response.body)};
     } else {
@@ -168,8 +169,8 @@ static Future<Map<String, dynamic>> createWorkout({
     body: jsonEncode({
       'date': date,
       'notes': notes,
-    }),
-  );
+    },
+    ).timeout(const Duration(seconds: 30));
   if (response.statusCode == 200) {
     return {'success': true, 'data': jsonDecode(response.body)};
   } else {
@@ -186,7 +187,7 @@ static Future<Map<String, dynamic>> getWorkouts() async {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     },
-  );
+    ).timeout(const Duration(seconds: 30));
   if (response.statusCode == 200) {
     return {'success': true, 'data': jsonDecode(response.body)};
   } else {
@@ -253,7 +254,7 @@ static Future<Map<String, dynamic>> getProgressSummary() async {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     },
-  );
+    ).timeout(const Duration(seconds: 30));
   if (response.statusCode == 200) {
     return {'success': true, 'data': jsonDecode(response.body)};
   } else {
