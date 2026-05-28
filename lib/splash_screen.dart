@@ -29,46 +29,47 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward();
 
-  Future.delayed(const Duration(seconds: 3), () async {
-  final isLoggedIn = await ApiService.isLoggedIn();
-  final isCalibrated = await ApiService.isCalibrated();
+    Future.delayed(const Duration(seconds: 3), () async {
+      final isLoggedIn = await ApiService.isLoggedIn();
+      final isCalibrated = await ApiService.isCalibrated();
 
-  if (isLoggedIn) {
-    // Verify token still valid
-    final me = await ApiService.getMe();
-    if (me['success'] == false) {
-      // Token expired
+      if (isLoggedIn) {
+        // Verify token still valid
+        final me = await ApiService.getMe();
+        if (me['success'] == false) {
+          // Token expired
+          Navigator.of(context).pushReplacement(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          );
+          return;
+        }
+      }
+
+      Widget nextScreen;
+      if (!isLoggedIn) {
+        nextScreen = const LoginScreen();
+      } else if (!isCalibrated) {
+        nextScreen = const CalibrateScreen();
+      } else {
+        nextScreen = const MainScreen();
+      }
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
+          transitionDuration: const Duration(milliseconds: 800),
         ),
       );
-      return;
-    }
+    });
   }
-
-  Widget nextScreen;
-  if (!isLoggedIn) {
-    nextScreen = const LoginScreen();
-  } else if (!isCalibrated) {
-    nextScreen = const CalibrateScreen();
-  } else {
-    nextScreen = const MainScreen();
-  }
-
-  Navigator.of(context).pushReplacement(
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(opacity: animation, child: child);
-      },
-      transitionDuration: const Duration(milliseconds: 800),
-    ),
-  );
-});
 
   @override
   void dispose() {
