@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 
-# Install Flutter SDK (only available in CI)
-echo "Installing Flutter SDK..."
-git clone https://github.com/flutter/flutter.git --depth 1 --branch stable /opt/flutter
-export PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH"
+# Use the Netlify cache dir if available, otherwise use $HOME
+FLUTTER_DIR="${NETLIFY_CACHE_DIR:-$HOME}/flutter"
 
-# Verify Flutter installation
+if [ ! -d "$FLUTTER_DIR" ]; then
+  echo "Installing Flutter SDK into $FLUTTER_DIR..."
+  git clone https://github.com/flutter/flutter.git -b stable --depth 1 "$FLUTTER_DIR"
+else
+  echo "Using existing Flutter at $FLUTTER_DIR"
+  # Optionally update if you want:
+  (cd "$FLUTTER_DIR" && git pull --ff-only)
+fi
+
+export PATH="$FLUTTER_DIR/bin:$PATH"
+
+# Verify and prepare
 echo "Verifying Flutter installation..."
-flutter doctor -v
+flutter --version
+flutter precache
 
 # Get dependencies
 echo "Getting Flutter dependencies..."
