@@ -169,8 +169,8 @@ static Future<Map<String, dynamic>> createWorkout({
     body: jsonEncode({
       'date': date,
       'notes': notes,
-    },
-    ).timeout(const Duration(seconds: 30));
+    }),
+  ).timeout(const Duration(seconds: 30));
   if (response.statusCode == 200) {
     return {'success': true, 'data': jsonDecode(response.body)};
   } else {
