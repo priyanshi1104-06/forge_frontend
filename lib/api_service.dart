@@ -74,10 +74,28 @@ class ApiService {
   }
 
   // Get token
-  static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+  static Future<Map<String, dynamic>> getMe() async {
+  final token = await getToken();
+  if (token == null) return {'success': false};
+  
+  final response = await http.get(
+    Uri.parse('$baseUrl/users/me'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  ).timeout(const Duration(seconds: 30));
+  
+  if (response.statusCode == 200) {
+    return {'success': true, 'data': jsonDecode(response.body)};
+  } else if (response.statusCode == 401) {
+    // Token expired — clear it
+    await logout();
+    return {'success': false, 'expired': true};
+  } else {
+    return {'success': false};
   }
+}
 
   // Logout
   static Future<void> logout() async {

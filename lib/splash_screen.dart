@@ -33,6 +33,23 @@ class _SplashScreenState extends State<SplashScreen>
   final isLoggedIn = await ApiService.isLoggedIn();
   final isCalibrated = await ApiService.isCalibrated();
 
+  if (isLoggedIn) {
+    // Verify token still valid
+    final me = await ApiService.getMe();
+    if (me['success'] == false) {
+      // Token expired
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      );
+      return;
+    }
+  }
+
   Widget nextScreen;
   if (!isLoggedIn) {
     nextScreen = const LoginScreen();
@@ -52,7 +69,6 @@ class _SplashScreenState extends State<SplashScreen>
     ),
   );
 });
-  }
 
   @override
   void dispose() {
