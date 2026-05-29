@@ -30,46 +30,51 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Future.delayed(const Duration(seconds: 3), () async {
-      final isLoggedIn = await ApiService.isLoggedIn();
-      final isCalibrated = await ApiService.isCalibrated();
+  final isLoggedIn = await ApiService.isLoggedIn();
 
-      if (isLoggedIn) {
-        // Verify token still valid
-        final me = await ApiService.getMe();
-        if (me['success'] == false) {
-          // Token expired
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          );
-          return;
-        }
-      }
-
-      Widget nextScreen;
-      if (!isLoggedIn) {
-        nextScreen = const LoginScreen();
-      } else if (!isCalibrated) {
-        nextScreen = const CalibrateScreen();
-      } else {
-        nextScreen = const MainScreen();
-      }
-
+  if (isLoggedIn) {
+    final me = await ApiService.getMe();
+    if (me['success'] == false) {
+      await ApiService.logout();
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 800),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
         ),
       );
-    });
+      return;
+    }
+
+    // Auto set calibrated if user already has profile
+    final profile = await ApiService.getProfile();
+    if (profile['success'] == true) {
+      await ApiService.setCalibrated();
+    }
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const MainScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 800),
+      ),
+    );
+    return;
   }
+
+  Navigator.of(context).pushReplacement(
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const LoginScreen(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          FadeTransition(opacity: animation, child: child),
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+  );
+});
 
   @override
   void dispose() {
